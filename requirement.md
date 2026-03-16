@@ -123,8 +123,5 @@ src/
 └── gemini/ # AI prompt definitions and SDK setup
 
 Current Status:
-1.unknown RLS problem for authenticated role.Solution: Created new Supabase client with service_role api key with located at /app/lib/supabase/admin.ts and set policy of table quizzes and questions to allowed service_role.  
-2.save-quiz/route.ts works with new RLS policies.
-3.created file structure of student loop but not implemented yet
-4.currently working on src/app/teacher/create/page.tsx
-5.teacher/dashboard/page.tsx not implemented yet
+1.All teacher's loop are completed (generate quiz ,save quiz) except dashboard
+2.Student Loop needs to be implemented

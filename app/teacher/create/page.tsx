@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function CreateQuizPage() {
-  const [sourceText, setSourceText] = useState("");
-  const [pdfBase64, setPdfBase64] = useState<string | null>(null);
+  const [storagePath, setStoragePath] = useState<string | null>(null);
   const [fileName, setFileName] = useState("");
   
   const [loading, setLoading] = useState(false);
@@ -14,6 +13,7 @@ export default function CreateQuizPage() {
   const [saving, setSaving] = useState(false);
   const [quizCode, setQuizCode] = useState("");
   const [session, setSession] = useState<any>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
 
   useEffect(() => {
@@ -41,22 +41,8 @@ export default function CreateQuizPage() {
     }
 
     setFileName(file.name);
-    setSourceText(""); // Clear any text if a file is uploaded
+    setSelectedFile(file);
     setError("");
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      // Extract the base64 part of the data URL
-      const base64String = (reader.result as string).split(",")[1];
-      setPdfBase64(base64String);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setSourceText(e.target.value);
-    setPdfBase64(null); // Clear PDF if user starts typing text
-    setFileName("");
   };
 
   const handleGenerate = async (e: React.FormEvent) => {
@@ -65,10 +51,28 @@ export default function CreateQuizPage() {
     setError("");
     setGeneratedQuiz(null);
     setQuizCode("");
+    setStoragePath(null);
     
     try {
-      // Determine what to send based on whether a PDF was uploaded
-      const payload = pdfBase64 ? { pdfBase64 } : { sourceText };
+      if (!selectedFile) {
+        throw new Error("Please select a PDF file first.");
+      }
+
+      // 1. Upload to Supabase Storage
+      const supabase = createClient();
+      const fileExt = selectedFile.name.split('.').pop();
+      const filePath = `${session?.user?.id || 'anonymous'}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('materials')
+        .upload(filePath, selectedFile);
+        
+      if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`);
+      
+      setStoragePath(uploadData.path);
+
+      // 2. Call the Gemini AI Route with the storage path
+      const payload = { storageBucket: 'materials', storagePath: uploadData.path };
 
       // Call the Gemini AI Route we created earlier
       const res = await fetch("/api/generate-quiz", {
@@ -86,6 +90,7 @@ export default function CreateQuizPage() {
       
       const data = await res.json();
       setGeneratedQuiz(data);
+      console.log(data);
       
     } catch (err: any) {
       setError(err.message);
@@ -100,10 +105,13 @@ export default function CreateQuizPage() {
     setError("");
 
     try {
+      const payload: any = { quiz: generatedQuiz };
+      if (storagePath) payload.storageBucket = 'materials', payload.storagePath = storagePath;
+
       const res = await fetch("/api/save-quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quiz: generatedQuiz }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -122,7 +130,7 @@ export default function CreateQuizPage() {
     <div className="max-w-4xl mx-auto p-6 space-y-8 font-sans">
       <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">Create a New Quiz</h1>
-        <p className="text-gray-500">Upload a PDF or paste your lesson material below, and our AI will generate a 5-question quiz instantly.</p>
+        <p className="text-gray-500">Upload a PDF of your lesson material below, and our AI will generate a 5-question quiz instantly.</p>
       </div>
 
       <form onSubmit={handleGenerate} className="space-y-6">
@@ -150,23 +158,9 @@ export default function CreateQuizPage() {
           </div>
         </div>
 
-        <div className="flex items-center py-2">
-          <div className="flex-grow border-t border-gray-200"></div>
-          <span className="flex-shrink-0 mx-4 text-gray-400 text-sm font-medium">OR PASTE TEXT</span>
-          <div className="flex-grow border-t border-gray-200"></div>
-        </div>
-
-        <textarea
-          value={sourceText}
-          onChange={handleTextChange}
-          placeholder={fileName ? "Clear the PDF upload to paste text instead." : "Paste syllabus, textbook chapter, or lecture notes here..."}
-          className="w-full h-40 p-4 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-gray-800 bg-white disabled:bg-gray-100 disabled:opacity-60"
-          disabled={!!pdfBase64}
-        />
-        
         <button
           type="submit"
-          disabled={loading || (!sourceText && !pdfBase64)}
+          disabled={loading || !selectedFile}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center shadow-sm"
         >
           {loading ? (
@@ -188,7 +182,6 @@ export default function CreateQuizPage() {
           {error}
         </div>
       )}
-
       {/* Preview Section */}
       {generatedQuiz && (
         <div className="mt-8 p-6 bg-white border border-gray-200 rounded-xl shadow-md space-y-6 animate-in fade-in slide-in-from-bottom-4">
@@ -201,7 +194,7 @@ export default function CreateQuizPage() {
             {generatedQuiz.questions.map((q: any, i: number) => (
               <div key={i} className="space-y-3 bg-gray-50 p-4 rounded-lg border border-gray-100">
                 <p className="font-semibold text-gray-900 text-lg">
-                  <span className="text-blue-600 mr-2">{i + 1}.</span>{q.text}
+                  {q.text}
                 </p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-6">

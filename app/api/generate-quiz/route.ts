@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenAI, Type, Schema } from '@google/genai';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 
 // Initialize the Google Gen AI SDK
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -38,35 +39,50 @@ const quizSchema: Schema = {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    // Now we expect a base64 string of the PDF from the frontend
-    const { pdfBase64 } = body; 
+    const { storageBucket, storagePath } = body;
 
-    if (!pdfBase64) {
-      return NextResponse.json({ error: "No PDF provided" }, { status: 400 });
+    if (!storageBucket || !storagePath) {
+      return NextResponse.json({ error: "Missing storage path" }, { status: 400 });
     }
+
+    // 1. Download the PDF from Supabase storage (server side)
+    const { data: fileBlob, error: downloadError } = await supabaseAdmin.storage
+      .from(storageBucket)
+      .download(storagePath);
+      
+    if (downloadError || !fileBlob) {
+      console.error('Failed to download file from storage', downloadError);
+      return NextResponse.json({ error: 'Failed to download file from storage' }, { status: 500 });
+    }
+
+    // 2. Convert the Blob to a Base64 string for Gemini native OCR
+    const arrayBuffer = await fileBlob.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const pdfBase64 = buffer.toString('base64');
+
+    const userParts: any[] = [
+      { text: "Create a multiple-choice quiz based on the attached educational material document. Ensure the generated quiz content is written entirely in the same language as the source text." },
+      {
+        inlineData: {
+          data: pdfBase64,
+          mimeType: "application/pdf"
+        }
+      }
+    ];
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: [
-        { 
-          role: 'user', 
-          parts: [
-            { text: "Create a multiple-choice quiz based on the attached educational material document. Ensure the generated quiz content is written entirely in the same language as the source text." },
-            { 
-              // Send the PDF directly to Gemini!
-              inlineData: { 
-                data: pdfBase64, 
-                mimeType: "application/pdf" 
-              } 
-            }
-          ] 
+        {
+          role: 'user',
+          parts: userParts,
         }
       ],
       config: {
         systemInstruction: "You are an expert educator. Your job is to create engaging, accurate multiple-choice quizzes from source material. Output only the requested JSON data structure.",
         responseMimeType: "application/json",
         responseSchema: quizSchema,
-        temperature: 0.2, 
+        temperature: 0.0,
       }
     });
 

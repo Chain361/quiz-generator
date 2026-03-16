@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { quiz } = body;
+    const { quiz, storageBucket, storagePath } = body;
 
     // Generate a 6-character random alphanumeric code (e.g., "A8B2X9")
     const quizCode = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -47,7 +47,22 @@ export async function POST(req: Request) {
       .from('questions')
       .insert(questionsToInsert);
 
-    if (questionsError) throw questionsError;
+    if (questionsError) {
+      // Manual rollback: Delete the inserted quiz if questions fail to save
+      console.warn("Questions insertion failed, rolling back quiz creation...");
+      await supabaseAdmin.from('quizzes').delete().eq('id', insertedQuiz.id);
+      throw questionsError;
+    }
+
+    // If a storage path was provided, attempt to remove the uploaded PDF now that quiz is saved
+    if (storageBucket && storagePath) {
+      try {
+        const { error: removeError } = await supabaseAdmin.storage.from(storageBucket).remove([storagePath]);
+        if (removeError) console.warn('Failed to delete uploaded PDF:', removeError);
+      } catch (remErr) {
+        console.warn('Error deleting uploaded PDF:', remErr);
+      }
+    }
 
     // Return success and the shareable code
     return NextResponse.json({ success: true, quizCode: quizCode });

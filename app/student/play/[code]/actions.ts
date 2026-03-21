@@ -4,40 +4,15 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-type SelectedAnswers = Record<string, string>;
-
 export async function submitQuiz(
   quizId: string,
-  selectedAnswers: SelectedAnswers,
-  studentName: string
+  studentName: string,
+  score: number,
+  answerDetails: { question_id: string; selected_answer: string; is_correct: boolean }[]
 ) {
   const supabase = await createClient();
 
-  // 1. Fetch questions to get correct answers
-  const { data: questions, error: questionsError } = await supabase
-    .from("questions")
-    .select("id, correct_answer")
-    .eq("quiz_id", quizId);
-
-  if (questionsError) {
-    console.error("Error fetching questions for score calculation:", questionsError);
-    return { error: "Could not fetch quiz questions." };
-  }
-
-  // 2. Calculate score
-  let score = 0;
-  const answerIsCorrect: Record<string, boolean> = {};
-  for (const question of questions) {
-    const selected = selectedAnswers[question.id];
-    const correct = question.correct_answer;
-    const isCorrect = selected === correct;
-    if (isCorrect) {
-      score++;
-    }
-    answerIsCorrect[question.id] = isCorrect;
-  }
-
-  // 3. Insert attempt
+  // 1. Insert attempt
   const { data: attempt, error: attemptError } = await supabase
     .from("attempts")
     .insert({
@@ -55,15 +30,13 @@ export async function submitQuiz(
 
   const attemptId = attempt.id;
 
-  // 4. Insert attempt answers
-  const attemptAnswers = Object.entries(selectedAnswers).map(
-    ([question_id, selected_answer]) => ({
-      attempt_id: attemptId,
-      question_id: question_id,
-      selected_answer: selected_answer,
-      is_correct: answerIsCorrect[question_id] || false,
-    })
-  );
+  // 2. Insert attempt answers
+  const attemptAnswers = answerDetails.map((detail) => ({
+    attempt_id: attemptId,
+    question_id: detail.question_id,
+    selected_answer: detail.selected_answer,
+    is_correct: detail.is_correct,
+  }));
 
   const { error: attemptAnswersError } = await supabase
     .from("attempt_answers")

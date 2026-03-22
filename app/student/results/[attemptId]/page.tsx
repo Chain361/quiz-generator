@@ -16,7 +16,7 @@ async function ResultsContent({ params }: { params: Promise<{ attemptId: string 
     .single();
 
   if (attemptError || !attempt) {
-    return <div className="p-10 text-center text-red-500">Could not load quiz results.</div>;
+    return <div className="p-10 text-center text-destructive">Could not load quiz results.</div>;
   }
 
   // Fetch answers with question details
@@ -26,7 +26,7 @@ async function ResultsContent({ params }: { params: Promise<{ attemptId: string 
     .eq("attempt_id", attemptId);
 
   if (answersError) {
-    return <div className="p-10 text-center text-red-500">Could not load answers.</div>;
+    return <div className="p-10 text-center text-destructive">Could not load answers.</div>;
   }
 
   // Type assertion for Supabase's generated generic response types 
@@ -59,52 +59,49 @@ async function ResultsContent({ params }: { params: Promise<{ attemptId: string 
   const aiInsight = await generateStudyRecommendation(failedTopics);
 
   return (
-    <main>
-      <Navbar/>
-      <Card className="w-full max-w-2xl shadow-xl border-t-4 border-t-blue-500">
-        <CardHeader className="bg-blue-50/50 dark:bg-blue-900/20 border-b border-gray-100 dark:border-gray-800 pb-6">
-          <CardTitle className="text-3xl text-center font-bold text-gray-800 dark:text-white">Quiz Results</CardTitle>
-          <p className="text-center text-gray-500 dark:text-gray-400 mt-2 font-medium">
-            {quizTitle}
+    <Card className="w-full max-w-2xl shadow-xl border-t-4 border-t-primary">
+      <CardHeader className="bg-card/50 border-b border-secondary pb-6">
+        <CardTitle className="text-3xl text-center font-bold text-primary">Quiz Results</CardTitle>
+        <p className="text-center text-secondary-foreground mt-2 font-medium">
+          {quizTitle}
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-8 pt-8">
+        <div className="text-center bg-card py-6 rounded-2xl shadow-sm border border-secondary">
+          <p className="text-sm font-semibold text-secondary-foreground uppercase tracking-wider mb-2">Final Score</p>
+          <h2 className="text-6xl font-black text-primary flex items-baseline justify-center">
+            {score} <span className="text-3xl text-secondary-foreground mx-2">/</span> <span className="text-4xl text-foreground">{totalQuestions}</span>
+          </h2>
+          <p className="text-lg mt-4 font-medium text-secondary-foreground">
+            Student: <span className="text-foreground">{attempt.student_name}</span>
           </p>
-        </CardHeader>
-        <CardContent className="space-y-8 pt-8">
-          <div className="text-center bg-white dark:bg-gray-800 py-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <p className="text-sm font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Final Score</p>
-            <h2 className="text-6xl font-black text-blue-600 dark:text-blue-400 flex items-baseline justify-center">
-              {score} <span className="text-3xl text-gray-300 dark:text-gray-600 mx-2">/</span> <span className="text-4xl text-gray-800 dark:text-gray-200">{totalQuestions}</span>
-            </h2>
-            <p className="text-lg mt-4 font-medium text-gray-600 dark:text-gray-300">
-              Student: <span className="text-gray-900 dark:text-white">{attempt.student_name}</span>
-            </p>
-          </div>
+        </div>
 
-          <div className="bg-blue-50 dark:bg-blue-900/30 p-6 rounded-2xl shadow-inner border border-blue-100 dark:border-blue-800 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
-            <h3 className="text-xl font-bold mb-3 text-blue-800 dark:text-blue-300 flex items-center">
-              <span className="text-2xl mr-2">💡</span> AI Study Insight
-            </h3>
-            <p className="text-blue-900 dark:text-blue-100 leading-relaxed">
-              {aiInsight}
-            </p>
-          </div>
+        <div className="bg-secondary p-6 rounded-2xl shadow-inner border border-accent relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+          <h3 className="text-xl font-bold mb-3 text-secondary-foreground flex items-center">
+            <span className="text-2xl mr-2">💡</span> AI Study Insight
+          </h3>
+          <p className="text-secondary-foreground leading-relaxed">
+            {aiInsight}
+          </p>
+        </div>
 
-          {failedTopics.length > 0 && (
-            <div className="px-2">
-              <h3 className="text-lg font-bold mb-4 text-gray-800 dark:text-gray-200 border-b pb-2">Topics to Review</h3>
-              <div className="flex flex-wrap gap-2">
-                {failedTopics.map((topic, index) => (
-                  <span key={index} className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 border border-red-200 dark:border-red-800/50">
-                    <span className="w-2 h-2 rounded-full bg-red-500 mr-2"></span>
-                    {topic}
-                  </span>
-                ))}
-              </div>
+        {failedTopics.length > 0 && (
+          <div className="px-2">
+            <h3 className="text-lg font-bold mb-4 text-foreground border-b border-secondary pb-2">Topics to Review</h3>
+            <div className="flex flex-wrap gap-2">
+              {failedTopics.map((topic, index) => (
+                <span key={index} className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-accent text-accent-foreground border border-accent">
+                  <span className="w-2 h-2 rounded-full bg-destructive mr-2"></span>
+                  {topic}
+                </span>
+              ))}
             </div>
-          )}
-        </CardContent>
-      </Card>
-    </main>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -114,10 +111,13 @@ export default function ResultsPage({
   params: Promise<{ attemptId: string }>;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 p-4">
-      <Suspense fallback={<div className="text-blue-500 text-lg font-semibold">Loading results...</div>}>
-        <ResultsContent params={params} />
-      </Suspense>
-    </div>
+    <main className="cosmic-night bg-background text-foreground min-h-screen">
+      <Navbar/>
+      <div className="cosmic-night flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-4">
+        <Suspense fallback={<div className="text-primary text-lg font-semibold">Loading results...</div>}>
+          <ResultsContent params={params} />
+        </Suspense>
+      </div>
+    </main>
   );
 }

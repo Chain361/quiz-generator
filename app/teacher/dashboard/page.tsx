@@ -5,6 +5,10 @@ import { CopyButton } from "@/components/ui/CopyButton";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Suspense } from "react";
 import Navbar from "@/components/ui/Navbar"
+import Link from "next/link";
+
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 
 async function getWeakestLinksForQuiz(quizId: string, supabase: SupabaseClient) {
     const { data: attemptIds, error: attemptsError } = await supabase
@@ -111,7 +115,7 @@ async function DashboardContent() {
   return (
     <>
       {quizzesWithStats.length === 0 && (
-        <div className="text-center text-gray-500 mt-12">
+        <div className="text-center text-secondary-foreground mt-12">
             <h2 className="text-2xl font-semibold">No quizzes yet!</h2>
             <p className="mt-2">Create your first quiz to see analytics here.</p>
         </div>
@@ -119,50 +123,50 @@ async function DashboardContent() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {quizzesWithStats.map((quiz) => (
-            <Card key={quiz.id}>
+            <Card key={quiz.id} className="bg-card border-secondary">
               <CardHeader>
-                <CardTitle className="truncate">{quiz.title}</CardTitle>
-                <div className="text-sm text-gray-500">
+                <CardTitle className="truncate text-primary">{quiz.title}</CardTitle>
+                <div className="text-sm text-secondary-foreground">
                   Created: {new Date(quiz.created_at).toLocaleDateString()}
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="flex justify-between items-center mb-4 bg-gray-50 p-2 rounded-lg">
+                <div className="flex justify-between items-center mb-4 bg-secondary p-2 rounded-lg border border-accent">
                   <div className="text-center">
-                    <div className="text-lg font-mono font-bold tracking-widest">
+                    <div className="text-lg font-mono font-bold tracking-widest text-foreground">
                       {quiz.quiz_code}
                     </div>
-                    <div className="text-xs text-gray-500">Share Code</div>
+                    <div className="text-xs text-secondary-foreground">Share Code</div>
                   </div>
                   <CopyButton textToCopy={quiz.quiz_code} />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 text-center mb-6">
                   <div>
-                    <div className="text-2xl font-bold">{quiz.totalAttempts}</div>
-                    <div className="text-sm text-gray-500">Total Attempts</div>
+                    <div className="text-2xl font-bold text-foreground">{quiz.totalAttempts}</div>
+                    <div className="text-sm text-secondary-foreground">Total Attempts</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold">
-                      {quiz.averageScore.toFixed(1)} <span className="text-lg text-gray-400">/ {quiz.totalQuestions}</span>
+                    <div className="text-2xl font-bold text-foreground">
+                      {quiz.averageScore.toFixed(1)} <span className="text-lg text-secondary-foreground">/ {quiz.totalQuestions}</span>
                     </div>
-                    <div className="text-sm text-gray-500">Avg. Score</div>
+                    <div className="text-sm text-secondary-foreground">Avg. Score</div>
                   </div>
                 </div>
                 
                 <div>
-                  <h4 className="font-semibold mb-2 text-gray-800">Weakest Links</h4>
+                  <h4 className="font-semibold mb-2 text-foreground">Weakest Links</h4>
                   {quiz.weakestLinks.length > 0 ? (
                     <ul className="space-y-2">
                         {quiz.weakestLinks.map(link => (
-                        <li key={link.topic} className="flex justify-between items-center text-sm bg-red-50 p-2 rounded-md">
-                            <span className="font-medium text-red-800 truncate">{link.topic}</span>
-                            <span className="font-bold text-red-600 flex items-center gap-1">{link.missed} <span className="text-xs font-normal">missed</span></span>
+                        <li key={link.topic} className="flex justify-between items-center text-sm bg-accent p-2 rounded-md border border-accent">
+                            <span className="font-medium text-accent-foreground truncate">{link.topic}</span>
+                            <span className="font-bold text-destructive flex items-center gap-1">{link.missed} <span className="text-xs font-normal text-accent-foreground">missed</span></span>
                         </li>
                         ))}
                     </ul>
                   ) : (
-                    <div className="text-center text-sm text-gray-400 p-4 bg-gray-50 rounded-md">
+                    <div className="text-center text-sm text-secondary-foreground p-4 bg-secondary rounded-md border border-accent">
                         No incorrect answers yet.
                     </div>
                   )}
@@ -178,12 +182,23 @@ async function DashboardContent() {
 
 export default function DashboardPage() {
   return (
-    <div className="container mx-auto ">
-        <Navbar/>
-      <h1 className="text-3xl font-bold mb-6">Teacher Dashboard</h1>
-      <Suspense fallback={<div className="text-gray-500">Loading dashboard...</div>}>
-        <DashboardContent />
-      </Suspense>
-    </div>
+    <main className="cosmic-night bg-background text-foreground min-h-screen">
+      <Navbar/>
+      <div className="container mx-auto pb-10">
+        <div className="bg-secondary border border-accent py-12 px-6 rounded-2xl mb-8 mt-4 text-center">
+          <h1 className="text-4xl font-bold mb-4 text-primary">Teacher Dashboard</h1>
+          <p className="text-lg text-secondary-foreground mb-6 max-w-2xl mx-auto">
+            Manage your quizzes, track student performance, and create new learning experiences.
+          </p>
+          <Button asChild size="lg" className="text-lg px-5 py-3 h-auto bg-primary text-primary-foreground hover:bg-primary/90">
+            <Link href="/teacher/create">Create New Quiz</Link>
+          </Button>
+        </div>
+
+        <Suspense fallback={<Spinner className="size-10 mx-auto"></Spinner>}>
+          <DashboardContent />
+        </Suspense>
+      </div>
+    </main>
   );
 }

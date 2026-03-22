@@ -20,6 +20,8 @@
     --accent-foreground: 0 0% 9%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
+    --success: 140 60% 40%;
+    --success-foreground: 0 0% 100%;
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
     --ring: 0 0% 3.9%;
@@ -55,6 +57,32 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+  }
+  .cosmic-night {
+    --background: 240 26.3% 8%;
+    --foreground: 240 50% 92.2%;
+    --card: 240 28% 14.1%;
+    --card-foreground: 240 50% 92.2%;
+    --popover: 240 28% 14.1%;
+    --popover-foreground: 240 50% 92.2%;
+    --primary: 258 100% 78.4%;
+    --primary-foreground: 240 26.3% 8%;
+    --secondary: 243 33.3% 25.1%;
+    --secondary-foreground: 243 100% 88.2%;
+    --muted: 243 33.3% 25.1%;
+    --muted-foreground: 240 50% 92.2%;
+    --accent: 240 33.3% 28.2%;
+    --accent-foreground: 240 50% 92.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 240 50% 92.2%;
+    --border: 243 33.3% 25.1%;
+    --input: 240 28% 14.1%;
+    --ring: 258 100% 78.4%;
+    --chart-1: 258 100% 78.4%;
+    --chart-2: 243 100% 88.2%;
+    --chart-3: 240 50% 92.2%;
+    --chart-4: 243 33.3% 25.1%;
+    --chart-5: 240 33.3% 28.2%;
   }
 }
 

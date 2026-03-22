@@ -3,7 +3,7 @@ import Navbar from "@/components/ui/Navbar";
 
 export default function CreateQuizPage() {
   return(
-    <main>
+    <main className="cosmic-night bg-background text-foreground min-h-screen">
       <Navbar/>
       <CreateQuiz/>
     </main>

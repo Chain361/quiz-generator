@@ -45,37 +45,39 @@ export default function StudentForm() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
-      <Card className="w-full max-w-md">
+    <div className="cosmic-night flex items-center justify-center min-h-screen bg-background">
+      <Card className="w-full max-w-md bg-card border-secondary">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">
+          <CardTitle className="text-2xl font-bold text-center text-primary">
             Join a Quiz
           </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleQuizStart} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Your Name</Label>
+              <Label htmlFor="name" className="text-foreground">Your Name</Label>
               <Input
                 id="name"
                 placeholder="Enter your name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                className="bg-input border-secondary text-foreground placeholder:text-secondary-foreground/60"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="quiz-code">Quiz Code</Label>
+              <Label htmlFor="quiz-code" className="text-foreground">Quiz Code</Label>
               <Input
                 id="quiz-code"
                 placeholder="Enter quiz code"
                 value={quizCode}
                 onChange={(e) => setQuizCode(e.target.value)}
                 required
+                className="bg-input border-secondary text-foreground placeholder:text-secondary-foreground/60"
               />
             </div>
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-            <Button type="submit" className="w-full">
+            {error && <p className="text-destructive text-sm">{error}</p>}
+            <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
               Start Quiz
             </Button>
           </form>

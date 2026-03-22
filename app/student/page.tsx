@@ -3,7 +3,7 @@ import StudentForm from "@/components/StudentForm";
 
 export default function StudentPage() {
   return(
-    <main>
+    <main className="cosmic-night bg-background text-foreground min-h-screen">
       <Navbar/>
       <StudentForm/>
     </main>

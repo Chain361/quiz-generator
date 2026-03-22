@@ -42,7 +42,6 @@ function QuizContent() {
   const [isPending, startTransition] = useTransition();
 
   const supabase = createClient();
-  const router = useRouter();
 
   useEffect(() => {
     const fetchQuiz = async () => {
@@ -128,16 +127,16 @@ function QuizContent() {
   };
 
   if (loading) {
-    return <div className="text-center p-10">Loading Quiz...</div>;
+    return <div className="cosmic-night bg-background text-foreground text-center p-10 min-h-screen flex items-center justify-center">Loading Quiz...</div>;
   }
 
   if (error) {
-    return <div className="text-center p-10 text-red-500">{error}</div>;
+    return <div className="cosmic-night bg-background text-destructive text-center p-10 min-h-screen flex items-center justify-center">{error}</div>;
   }
 
   if (!quiz || quiz.questions.length === 0) {
     return (
-      <div className="text-center p-10">
+      <div className="cosmic-night bg-background text-foreground text-center p-10 min-h-screen flex items-center justify-center">
         This quiz has no questions.
       </div>
     );
@@ -147,35 +146,48 @@ function QuizContent() {
   const progress = ((currentQuestionIndex) / quiz.questions.length) * 100;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 p-4">
+    <div className="cosmic-night flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-4">
       <div className="w-full max-w-2xl">
-        <div className="mb-4">
-          <p className="text-center mb-2">{`Question ${currentQuestionIndex + 1} of ${quiz.questions.length}`}</p>
+        <div className="mb-6 space-y-2">
+          <div className="flex justify-between items-center">
+            <span className="font-medium text-sm tracking-wide text-secondary-foreground uppercase">
+              Question {currentQuestionIndex + 1} of {quiz.questions.length}
+            </span>
+            <div key={score} className="flex items-center gap-1.5 bg-success/20 px-3 py-1 rounded-full border border-success/50 shadow-sm animate-in zoom-in duration-300">
+              <span className="text-sm leading-none">⭐</span>
+              <span className="font-bold text-success">
+                Score: {score}
+              </span>
+            </div>
+          </div>
           <Progress value={progress} />
         </div>
-        <Card>
+        <Card className="bg-card/40 backdrop-blur-xl border-secondary/50 shadow-2xl">
           <CardHeader>
-            <CardTitle>{quiz.title}</CardTitle>
+            <CardTitle className="text-primary">{quiz.title}</CardTitle>
           </CardHeader>
           <CardContent>
-            <h2 className="text-xl font-semibold mb-4">{currentQuestion.text}</h2>
+            <h2 className="text-xl font-semibold mb-4 text-foreground">{currentQuestion.text}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {currentQuestion.options.map((option, index) => {
                 let variant: "default" | "outline" | "destructive" | "secondary" = "outline";
-                let className = "p-4 h-auto whitespace-normal";
+                let className = "p-4 h-auto whitespace-normal disabled:opacity-90 text-white";
 
                 if (isChecked) {
                   if (option === currentQuestion.correct_answer) {
-                    className += " bg-green-500 hover:bg-green-600 text-white border-green-500";
+                    variant = "default"; // To remove default outline
+                    className += " bg-success text-success-foreground hover:bg-success/90 border-success text-white opacity-100";
                   } else if (option === selectedOption) {
                     variant = "destructive";
+                    className += " opacity-100";
                   } else {
                     variant = "outline";
-                    className += " opacity-50";
+                    className += " opacity-50 text-foreground border-secondary";
                   }
                 } else {
                   if (selectedOption === option) {
                     variant = "default";
+                    className += " bg-primary text-primary-foreground";
                   }
                 }
 
@@ -194,9 +206,9 @@ function QuizContent() {
             </div>
 
             {isChecked && (
-              <div className="mt-6 p-4 rounded-md bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800">
-                <h3 className="font-semibold text-blue-800 dark:text-blue-300 mb-1">Explanation</h3>
-                <p className="text-sm text-blue-900 dark:text-blue-200">
+              <div className="mt-6 p-4 rounded-md bg-secondary border border-accent">
+                <h3 className="font-semibold text-secondary-foreground mb-1">Explanation</h3>
+                <p className="text-sm text-secondary-foreground">
                   {currentQuestion.explanation || "No explanation provided."}
                 </p>
               </div>
@@ -204,11 +216,11 @@ function QuizContent() {
 
             <div className="mt-6 flex justify-end">
               {!isChecked ? (
-                <Button onClick={handleCheck} disabled={!selectedOption}>
+                <Button onClick={handleCheck} disabled={!selectedOption} className="bg-primary text-primary-foreground hover:bg-primary/90">
                   Check
                 </Button>
               ) : (
-                <Button onClick={handleNextQuestion} disabled={isPending}>
+                <Button onClick={handleNextQuestion} disabled={isPending} className="bg-primary text-primary-foreground hover:bg-primary/90">
                   {isPending
                     ? "Submitting..."
                     : currentQuestionIndex < quiz.questions.length - 1

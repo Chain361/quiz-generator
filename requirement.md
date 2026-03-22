@@ -14,7 +14,7 @@ AI Provider: Gemini API (Official SDK).
 
 2. Database Schema (PostgreSQL)
 
-users: id (UUID PK), role ('TEACHER' | 'STUDENT'), email
+users: id (UUID PK), role ('TEACHER' | 'STUDENT'), email, file_uploaded (Integer >= 0 and Integer <= 3)
 
 quizzes: id (UUID PK), teacher_id (UUID FK), quiz_code (String, Unique), title, source_material_url, created_at
 

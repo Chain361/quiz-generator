@@ -9,6 +9,8 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { deleteQuiz } from "./actions";
+import { DeleteQuizButton } from "@/components/DeleteQuizButton";
 
 async function getWeakestLinksForQuiz(quizId: string, supabase: SupabaseClient) {
     const { data: attemptIds, error: attemptsError } = await supabase
@@ -111,13 +113,33 @@ async function DashboardContent() {
     })
   );
 
-
   return (
     <>
+      <div className="bg-secondary border border-accent py-12 px-6 rounded-2xl mb-8 mt-4 text-center">
+        <h1 className="text-4xl font-bold mb-4 text-primary">Teacher Dashboard</h1>
+        <p className="text-lg text-secondary-foreground mb-6 max-w-2xl mx-auto">
+          Manage your quizzes, track student performance, and create new learning experiences.
+        </p>
+        <div className="flex flex-col items-center gap-4">
+          <p className="text-md font-medium text-foreground px-4 py-2 rounded-full border border-secondary shadow-sm">
+            Quizzes Created: <span className={quizzesWithStats.length >= 3 ? "text-destructive font-bold" : "text-primary font-bold"}>{quizzesWithStats.length}</span> / 3
+          </p>
+          {quizzesWithStats.length >= 3 ? (
+            <Button disabled size="lg" className="text-lg px-5 py-3 h-auto opacity-50 cursor-not-allowed">
+              Create New Quiz (Limit Reached)
+            </Button>
+          ) : (
+            <Button asChild size="lg" className="text-lg px-5 py-3 h-auto bg-primary text-primary-foreground hover:bg-primary/90">
+              <Link href="/teacher/create">Create New Quiz</Link>
+            </Button>
+          )}
+        </div>
+      </div>
+
       {quizzesWithStats.length === 0 && (
         <div className="text-center text-secondary-foreground mt-12">
             <h2 className="text-2xl font-semibold">No quizzes yet!</h2>
-            <p className="mt-2">Create your first quiz to see analytics here.</p>
+            <p className="mt-2">Upload a document to create your first quiz and see analytics here.</p>
         </div>
       )}
 
@@ -125,9 +147,14 @@ async function DashboardContent() {
         {quizzesWithStats.map((quiz) => (
             <Card key={quiz.id} className="bg-card border-secondary">
               <CardHeader>
-                <CardTitle className="truncate text-primary">{quiz.title}</CardTitle>
-                <div className="text-sm text-secondary-foreground">
-                  Created: {new Date(quiz.created_at).toLocaleDateString()}
+                <div className="flex justify-between items-start gap-2">
+                  <div className="min-w-0">
+                    <CardTitle className="truncate text-primary">{quiz.title}</CardTitle>
+                    <div className="text-sm text-secondary-foreground mt-1">
+                      Created: {new Date(quiz.created_at).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <DeleteQuizButton deleteAction={deleteQuiz.bind(null, quiz.id) as (formData: FormData) => void} />
                 </div>
               </CardHeader>
               <CardContent>
@@ -185,17 +212,8 @@ export default function DashboardPage() {
     <main className="cosmic-night bg-background text-foreground min-h-screen">
       <Navbar/>
       <div className="container mx-auto pb-10">
-        <div className="bg-secondary border border-accent py-12 px-6 rounded-2xl mb-8 mt-4 text-center">
-          <h1 className="text-4xl font-bold mb-4 text-primary">Teacher Dashboard</h1>
-          <p className="text-lg text-secondary-foreground mb-6 max-w-2xl mx-auto">
-            Manage your quizzes, track student performance, and create new learning experiences.
-          </p>
-          <Button asChild size="lg" className="text-lg px-5 py-3 h-auto bg-primary text-primary-foreground hover:bg-primary/90">
-            <Link href="/teacher/create">Create New Quiz</Link>
-          </Button>
-        </div>
 
-        <Suspense fallback={<Spinner className="size-10 mx-auto"></Spinner>}>
+        <Suspense fallback={<Spinner className="size-10 mx-auto mt-20"></Spinner>}>
           <DashboardContent />
         </Suspense>
       </div>

@@ -15,7 +15,6 @@ export default function CreateQuiz() {
   const [session, setSession] = useState<any>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-
   useEffect(() => {
     const getSession = async () => {
       const supabase = createClient();
@@ -29,7 +28,7 @@ export default function CreateQuiz() {
     }
     getSession();
     
-  }, [])
+  }, []);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -92,6 +91,21 @@ export default function CreateQuiz() {
       setGeneratedQuiz(data);
       console.log(data);
       
+      // 3. Increment the user's file_uploaded count after successful generation
+      if (session?.user?.id) {
+        const { data: userData } = await supabase
+          .from("users")
+          .select("file_uploaded")
+          .eq("id", session.user.id)
+          .maybeSingle();
+
+        if (userData) {
+          await supabase
+            .from("users")
+            .update({ file_uploaded: (userData.file_uploaded || 0) + 1 })
+            .eq("id", session.user.id);
+        }
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {

@@ -145,7 +145,7 @@ export default function CreateQuiz() {
       <div className="max-w-4xl mx-auto p-6 space-y-8 font-sans">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Create a New Quiz</h1>
-          <p className="text-secondary-foreground">Upload a PDF of your lesson material below, and our AI will generate a 5-question quiz instantly.</p>
+          <p className="text-secondary-foreground">Upload a PDF of your lesson material below, and our AI will generate quiz instantly.</p>
         </div>
 
         <form onSubmit={handleGenerate} className="space-y-6">

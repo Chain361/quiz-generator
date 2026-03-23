@@ -5,6 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 // Initialize the Google Gen AI SDK
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
+
 // Define the strict JSON schema we want Gemini to return
 const quizSchema: Schema = {
   type: Type.OBJECT,
@@ -37,6 +38,9 @@ const quizSchema: Schema = {
 };
 
 export async function POST(req: Request) {
+  let bucketToCleanUp: string | null = null;
+  let pathToCleanUp: string | null = null;
+
   try {
     const body = await req.json();
     const { storageBucket, storagePath } = body;
@@ -44,6 +48,9 @@ export async function POST(req: Request) {
     if (!storageBucket || !storagePath) {
       return NextResponse.json({ error: "Missing storage path" }, { status: 400 });
     }
+
+    bucketToCleanUp = storageBucket;
+    pathToCleanUp = storagePath;
 
     // 1. Download the PDF from Supabase storage (server side)
     const { data: fileBlob, error: downloadError } = await supabaseAdmin.storage
@@ -94,5 +101,15 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error("Quiz generation error:", error);
     return NextResponse.json({ error: error.message || "Failed to generate quiz" }, { status: 500 });
+  } finally {
+    // 3. Always clean up the uploaded file to prevent orphaned files in storage.
+    // This ensures it gets deleted even if the user refreshes or generation fails.
+    if (bucketToCleanUp && pathToCleanUp) {
+      const { error: removeError } = await supabaseAdmin.storage
+        .from(bucketToCleanUp)
+        .remove([pathToCleanUp]);
+        
+      if (removeError) console.error("Failed to clean up storage file:", removeError);
+    }
   }
 }

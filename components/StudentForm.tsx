@@ -13,11 +13,11 @@ export default function StudentForm() {
   const [quizCode, setQuizCode] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
-  const supabase = createClient();
 
   const handleQuizStart = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    const supabase = createClient();
 
     if (!name || !quizCode) {
       setError("Please enter your name and a quiz code.");

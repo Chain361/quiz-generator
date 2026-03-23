@@ -41,10 +41,9 @@ function QuizContent() {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const supabase = createClient();
-
   useEffect(() => {
     const fetchQuiz = async () => {
+      const supabase = createClient();
       if (!code) return;
       setLoading(true);
       setError(null);
@@ -71,7 +70,7 @@ function QuizContent() {
     };
 
     fetchQuiz();
-  }, [code, supabase]);
+  }, [code]);
 
   const handleOptionSelect = (option: string) => {
     if (!isChecked) {

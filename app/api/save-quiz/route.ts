@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase/admin'; // Assumes you have standard Next.js @ alias setup
+import { createAdminClient } from '@/lib/supabase/admin'; // Assumes you have standard Next.js @ alias setup
 import { createClient } from '@/lib/supabase/server';
 
 export async function POST(req: Request) {
@@ -7,6 +7,7 @@ export async function POST(req: Request) {
     
     // 1. Use the standard client to get the user from cookies
     const supabaseAuth = await createClient();
+    const supabaseAdmin = createAdminClient();
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
 
     if (authError || !user) {

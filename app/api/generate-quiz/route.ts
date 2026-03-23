@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenAI, Type, Schema } from '@google/genai';
-import { supabaseAdmin } from '@/lib/supabase/admin';
-
-// Initialize the Google Gen AI SDK
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+import { createAdminClient } from '@/lib/supabase/admin';
 
 
 // Define the strict JSON schema we want Gemini to return
@@ -40,6 +37,10 @@ const quizSchema: Schema = {
 export async function POST(req: Request) {
   let bucketToCleanUp: string | null = null;
   let pathToCleanUp: string | null = null;
+
+  // Initialize clients inside the handler to prevent build-time evaluation errors
+  const supabaseAdmin = createAdminClient();
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
   try {
     const body = await req.json();

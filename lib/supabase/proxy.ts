@@ -58,6 +58,23 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  if (
+    request.nextUrl.pathname === ("/teacher/create")
+  ) {
+    // no user, potentially respond by redirecting the user to the login page
+    const { data: userData } = await supabase
+        .from("users")
+        .select("file_uploaded")
+        .eq("email", user?.email)
+        .maybeSingle();
+    
+    if (userData && userData.file_uploaded >= 3) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/teacher/dashboard";
+      return NextResponse.redirect(url);
+    }
+  }
+
   // IMPORTANT: You *must* return the supabaseResponse object as it is.
   // If you're creating a new response object with NextResponse.next() make sure to:
   // 1. Pass the request in it, like so:

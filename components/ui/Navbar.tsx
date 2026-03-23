@@ -9,7 +9,7 @@ const Navbar = () => {
             <div className="flex gap-5 items-center font-semibold">
               <Link href={"/"} className="text-bold text-lg">Quiz Generator</Link>
             </div>
-            <Suspense>
+            <Suspense fallback={<div className="text-secondary-foreground text-sm">Loading...</div>}>
               <AuthButton />
             </Suspense>
           </div>

@@ -34,6 +34,7 @@ export default function Home() {
           <div className="text-left w-full">
             <p className="mt-1 text-blue-300 opacity-75">Example email: t@t.com</p>
             <p className="mt-1 text-blue-300 opacity-75">Example password: 123</p>
+            <p className="mt-1 text-blue-300 opacity-75">Example Quiz Code: QDZZ1D</p>
           </div>
           <div className="flex gap-4 mt-5">
             <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 py-7 px-9 text-lg">

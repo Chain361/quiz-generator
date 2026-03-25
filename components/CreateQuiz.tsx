@@ -39,6 +39,11 @@ export default function CreateQuiz() {
       return;
     }
 
+    if (file.size > 10 * 1024 * 1024) {
+      setError("File size exceeds 10MB limit. Please upload a smaller file.");
+      return;
+    }
+
     setFileName(file.name);
     setSelectedFile(file);
     setError("");
@@ -169,7 +174,7 @@ export default function CreateQuiz() {
                   "Drag and drop a PDF document, or click to browse"
                 )}
               </p>
-              {!fileName && <p className="text-sm text-secondary-foreground">Supports text, scanned images, and charts.</p>}
+            {!fileName && <p className="text-sm text-secondary-foreground">Supports text, scanned images, and charts. Max file size: 10MB.</p>}
             </div>
           </div>
 

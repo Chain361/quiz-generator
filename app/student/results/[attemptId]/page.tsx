@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { generateStudyRecommendation } from "./actions";
 import Navbar from "@/components/ui/Navbar";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 async function ResultsContent({ params }: { params: Promise<{ attemptId: string }> }) {
   const { attemptId } = await params;
@@ -85,6 +87,11 @@ async function ResultsContent({ params }: { params: Promise<{ attemptId: string 
           <p className="text-secondary-foreground leading-relaxed">
             {aiInsight}
           </p>
+        </div>
+        <div className="w-full flex justify-center">
+          <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <Link href="/">Back To Homepage</Link>
+          </Button>
         </div>
 
         {failedTopics.length > 0 && (

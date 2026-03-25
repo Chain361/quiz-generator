@@ -62,6 +62,11 @@ export async function POST(req: Request) {
       console.error('Failed to download file from storage', downloadError);
       return NextResponse.json({ error: 'Failed to download file from storage' }, { status: 500 });
     }
+    
+    // Enforce max file size limit (10MB)
+    if (fileBlob.size > 10 * 1024 * 1024) {
+      return NextResponse.json({ error: "File size exceeds 10MB limit." }, { status: 400 });
+    }
 
     // 2. Convert the Blob to a Base64 string for Gemini native OCR
     const arrayBuffer = await fileBlob.arrayBuffer();

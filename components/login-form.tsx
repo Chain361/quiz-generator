@@ -42,7 +42,13 @@ export function LoginForm({
       // Invalidate the Next.js client-side router cache to clear any pre-fetched unauthenticated redirects
       router.refresh();
       // Update this route to redirect to an authenticated route. The user already has an active session.
-      router.push("/");
+      const searchParams = new URLSearchParams(window.location.search);
+      const next = searchParams.get("next");
+      if (next && next.startsWith("/")) {
+        router.push(next);
+      } else {
+        router.push("/");
+      }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {

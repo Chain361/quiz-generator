@@ -125,13 +125,16 @@ async function DashboardContent() {
             Quizzes Created: <span className={quizzesWithStats.length >= 3 ? "text-destructive font-bold" : "text-primary font-bold"}>{quizzesWithStats.length}</span> / 3
           </p>
           {quizzesWithStats.length >= 3 ? (
-            <Button disabled size="lg" className="text-lg px-5 py-3 h-auto opacity-50 cursor-not-allowed">
+            <button disabled className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring h-auto px-5 py-3 opacity-50 cursor-not-allowed">
               Create New Quiz (Limit Reached)
-            </Button>
+            </button>
           ) : (
-            <Button asChild size="lg" className="text-lg px-5 py-3 h-auto bg-primary text-primary-foreground hover:bg-primary/90">
-              <Link href="/teacher/create">Create New Quiz</Link>
-            </Button>
+            <Link
+              href="/teacher/create"
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring h-auto px-5 py-3 bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Create New Quiz
+            </Link>
           )}
         </div>
       </div>

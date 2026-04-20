@@ -58,7 +58,7 @@ async function ResultsContent({ params }: { params: Promise<{ attemptId: string 
     failedTopics.push("General Review");
   }
 
-  const aiInsight = await generateStudyRecommendation(failedTopics);
+  const aiInsight = await generateStudyRecommendation(quizTitle, failedTopics);
 
   return (
     <Card className="w-full max-w-2xl shadow-xl border-t-4 border-t-primary">

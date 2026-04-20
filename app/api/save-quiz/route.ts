@@ -65,6 +65,29 @@ export async function POST(req: Request) {
       }
     }
 
+    // Increment the user's file_uploaded count after successful quiz save
+    if (user?.id) {
+      const { data: userData, error: userFetchError } = await supabaseAdmin
+        .from("users")
+        .select("file_uploaded")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (userFetchError) {
+        console.error("Error fetching user data for file_uploaded increment:", userFetchError.message);
+        // Do not block the response, just log the error.
+      } else if (userData) {
+        const { error: updateError } = await supabaseAdmin
+          .from("users")
+          .update({ file_uploaded: (userData.file_uploaded || 0) + 1 })
+          .eq("id", user.id);
+
+        if (updateError) {
+          console.error("Error incrementing file_uploaded count:", updateError.message);
+        }
+      }
+    }
+
     // Return success and the shareable code
     return NextResponse.json({ success: true, quizCode: quizCode });
 

@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 export default function CreateQuiz() {
+  const router = useRouter();
   const [storagePath, setStoragePath] = useState<string | null>(null);
   const [fileName, setFileName] = useState("");
   
@@ -95,22 +97,6 @@ export default function CreateQuiz() {
       const data = await res.json();
       setGeneratedQuiz(data);
       console.log(data);
-      
-      // 3. Increment the user's file_uploaded count after successful generation
-      if (session?.user?.id) {
-        const { data: userData } = await supabase
-          .from("users")
-          .select("file_uploaded")
-          .eq("id", session.user.id)
-          .maybeSingle();
-
-        if (userData) {
-          await supabase
-            .from("users")
-            .update({ file_uploaded: (userData.file_uploaded || 0) + 1 })
-            .eq("id", session.user.id);
-        }
-      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -143,6 +129,13 @@ export default function CreateQuiz() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleCancel = () => {
+    setGeneratedQuiz(null);
+    setQuizCode("");
+    setStoragePath(null);
+    setError("");
   };
 
   return (
@@ -241,32 +234,46 @@ export default function CreateQuiz() {
               ))}
             </div>
             
-            <div className="pt-6">
+            <div className="pt-6 space-y-4">
               {!quizCode ? (
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-4 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center"
-                >
-                  {saving ? (
-                    <span className="flex items-center gap-2">
-                      <svg className="animate-spin h-5 w-5 text-primary-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Saving to Database...
-                    </span>
-                  ) : (
-                    "Save to Database & Get Quiz Code 🚀"
-                  )}
-                </button>
+                <div className="flex gap-3 w-full">
+                  <button
+                    onClick={handleCancel}
+                    className="flex-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground font-bold py-4 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex justify-center items-center"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-4 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center"
+                  >
+                    {saving ? (
+                      <span className="flex items-center gap-2">
+                        <svg className="animate-spin h-5 w-5 text-primary-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Saving...
+                      </span>
+                    ) : (
+                      "Save to Database & Get Quiz Code 🚀"
+                    )}
+                  </button>
+                </div>
               ) : (
-                <div className="bg-accent p-6 rounded-xl border border-accent text-center space-y-4">
+                <div className="bg-accent p-6 rounded-xl border border-accent text-center space-y-4 flex-col">
                   <h3 className="text-2xl font-bold text-accent-foreground">Quiz Saved Successfully! 🎉</h3>
                   <p className="text-accent-foreground">Share this code with your students to let them take the quiz:</p>
-                  <div className="bg-card text-4xl font-mono font-black tracking-widest text-foreground p-4 rounded-lg border-2 border-dashed border-primary inline-block select-all cursor-pointer">
+                  <div className="bg-card text-4xl font-mono font-black tracking-widest text-foreground p-4 rounded-lg border-2 border-dashed border-primary inline-block select-all cursor-pointer w-full">
                     {quizCode}
                   </div>
+                  <button
+                    onClick={() => router.push("/teacher/dashboard")}
+                    className="mt-6 bg-accent-foreground hover:bg-accent-foreground/90 text-accent font-bold py-3 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  >
+                    Go to Dashboard →
+                  </button>
                 </div>
               )}
             </div>

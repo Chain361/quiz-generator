@@ -1,8 +1,13 @@
-import { GoogleGenAI } from "@google/genai";
+import OpenAI from "openai";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+  // Initialize Qwen client
+  const qwen = new OpenAI({
+    apiKey: process.env.DASHSCOPE_API_KEY,
+    baseURL: "https://coding-intl.dashscope.aliyuncs.com/v1",
+  });
+
   try {
     const { topics } = await request.json();
 
@@ -13,7 +18,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    if (!process.env.DASHSCOPE_API_KEY) {
       return NextResponse.json(
         {
           error: "API key not configured",
@@ -26,18 +31,21 @@ export async function POST(request: NextRequest) {
 
     const topicsList = topics.join(", ");
 
-    const prompt = `You are a helpful and encouraging educational assistant. A student struggled with the following topics on a quiz: ${topicsList}. 
+    const prompt = `You are a helpful and encouraging educational assistant. A student struggled with the following topics on a quiz: ${topicsList}.
     
-    Provide a short, encouraging, and actionable 2-sentence study recommendation for these specific topics. Be positive and motivating while giving concrete advice on how to improve.
+    Provide a short, encouraging, and actionable 2-sentence study recommendation for these specific topics in Thai. Be positive and motivating while giving concrete advice on how to improve.
     
     Keep your response to exactly 2 sentences only.`;
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
+    
+    const completion = await qwen.chat.completions.create({
+      model: "qwen3.6-plus",
+      messages: [
+        { role: "user", content: prompt }
+      ],
+      temperature: 0.7, // Adjust temperature as needed for creativity vs. consistency
     });
     
-    const text = response.text || "";
+    const text = completion.choices[0].message.content || "";
 
     return NextResponse.json({
       recommendation: text,

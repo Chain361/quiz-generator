@@ -28,6 +28,15 @@ const quizSchema = {
   required: ["title", "questions"]
 };
 
+// Helper: cleanup file in background (non-blocking)
+async function cleanupFileBackground(supabase: any, bucket: string, path: string) {
+  try {
+    await supabase.storage.from(bucket).remove([path]);
+  } catch (err) {
+    console.error("Background cleanup error:", err);
+  }
+}
+
 export async function POST(req: Request) {
   let bucketToCleanUp: string | null = null;
   let pathToCleanUp: string | null = null;
@@ -82,7 +91,7 @@ export async function POST(req: Request) {
     if (!extractText) throw new Error('Failed to load PDF extractor (unpdf)');
     const { text: documentText } = await extractText(buffer);
 
-    // 3. Call Qwen
+    // 3. Call Qwen with optimized prompt for faster generation
     const completion = await qwen.chat.completions.create({
       model: "qwen3.6-plus", 
       messages: [
@@ -90,15 +99,16 @@ export async function POST(req: Request) {
           role: "system", 
           content: `You are an expert educator. Create a multiple-choice quiz in JSON format. 
           Follow this exact schema: ${JSON.stringify(quizSchema)}. 
-          Ensure output is valid JSON.` 
+          Ensure output is valid JSON. Generate EXACTLY 5 questions (not more).` 
         },
         { 
           role: "user", 
-          content: `@question_retrieval Create a quiz based on this document. Language must match the document.\n\nDocument content:\n${documentText}` 
+          content: `Create a quick 5-question quiz based on this document. Language must match the document.\n\nDocument content:\n${documentText}` 
         }
       ],
       response_format: { type: "json_object" },
       temperature: 0.1,
+      max_tokens: 2000,
     });
 
     const jsonText = completion.choices[0].message.content || "{}";
@@ -110,8 +120,9 @@ export async function POST(req: Request) {
     console.error("Qwen Quiz generation error:", error);
     return NextResponse.json({ error: error.message || "Failed to generate quiz" }, { status: 500 });
   } finally {
+    // Cleanup file in background (don't block response)
     if (bucketToCleanUp && pathToCleanUp) {
-      await supabaseAdmin.storage.from(bucketToCleanUp).remove([pathToCleanUp]);
+      cleanupFileBackground(supabaseAdmin, bucketToCleanUp, pathToCleanUp);
     }
   }
 }

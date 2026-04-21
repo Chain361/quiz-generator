@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/ui/Navbar"
 import {
@@ -7,12 +8,24 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Github } from "@mynaui/icons-react";
+import bgImage from "./bg.jpg";
 
 export default function Home() {
   return (
-    <main className="cosmic-night min-h-screen flex flex-col items-center bg-background text-foreground">
+    <main className="cosmic-night relative min-h-screen flex flex-col items-center text-foreground overflow-hidden">
+      <div className="absolute inset-0 z-[-1]">
+        <Image
+          src={bgImage}
+          alt="Classroom Background"
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-background/80 dark:bg-background/90 transition-colors duration-300"></div>
+      </div>
+
       <Navbar/>
-      <div className="flex-1 w-full flex flex-col gap-20 items-center">
+      <div className="relative z-10 flex-1 w-full flex flex-col gap-20 items-center">
         <div className="flex-1 flex flex-col gap-4 max-w-5xl p-5 items-center justify-center text-center">
           <div className="flex justify-between w-full items-center">
             <div className="text-left align-middle">

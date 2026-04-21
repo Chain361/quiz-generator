@@ -10,22 +10,25 @@ async function ResultsContent({ params }: { params: Promise<{ attemptId: string 
   const { attemptId } = await params;
   const supabase = await createClient();
 
-  // Fetch attempt details
-  const { data: attempt, error: attemptError } = await supabase
-    .from("attempts")
-    .select("*, quizzes(title, questions(id))")
-    .eq("id", attemptId)
-    .single();
+  // Fetch attempt details and answers in parallel
+  const [attemptRes, answersRes] = await Promise.all([
+    supabase
+      .from("attempts")
+      .select("*, quizzes(title, questions(id))")
+      .eq("id", attemptId)
+      .single(),
+    supabase
+      .from("attempt_answers")
+      .select("is_correct, questions(topic_tag)")
+      .eq("attempt_id", attemptId),
+  ]);
+
+  const { data: attempt, error: attemptError } = attemptRes;
+  const { data: answers, error: answersError } = answersRes;
 
   if (attemptError || !attempt) {
     return <div className="p-10 text-center text-destructive">Could not load quiz results.</div>;
   }
-
-  // Fetch answers with question details
-  const { data: answers, error: answersError } = await supabase
-    .from("attempt_answers")
-    .select("is_correct, questions(topic_tag)")
-    .eq("attempt_id", attemptId);
 
   if (answersError) {
     return <div className="p-10 text-center text-destructive">Could not load answers.</div>;

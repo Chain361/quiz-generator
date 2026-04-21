@@ -2,9 +2,18 @@
 
 import OpenAI from "openai";
 
+// Simple in-memory cache for recommendations (cleared on server restart)
+const recommendationCache = new Map<string, string>();
+
 export async function generateStudyRecommendation(quizTitle: string, failedTopics: string[]) {
   if (!failedTopics || failedTopics.length === 0) {
     return "Great job! You answered everything correctly. Keep up the excellent work!";
+  }
+
+  // Cache key based on sorted topics
+  const cacheKey = [...failedTopics].sort().join("|");
+  if (recommendationCache.has(cacheKey)) {
+    return recommendationCache.get(cacheKey)!;
   }
 
   const apiKey = process.env.DASHSCOPE_API_KEY;
@@ -20,19 +29,18 @@ export async function generateStudyRecommendation(quizTitle: string, failedTopic
   });
 
   const topicsList = failedTopics.join(", ");
-  const prompt = `You are a helpful and encouraging educational assistant. A student struggled with the following topics on a quiz titled "${quizTitle}": ${topicsList}.
-    
-    Provide a short, encouraging, and actionable 2-sentence study recommendation for these specific topics in Thai. Be positive and motivating while giving concrete advice on how to improve.
-    
-    Keep your response to exactly 2 sentences only.`;
+  const prompt = `Study recommendation for these topics in Thai: ${topicsList}. Give 2 sentences max, be encouraging and actionable.`;
 
   try {
     const completion = await qwen.chat.completions.create({
       model: "qwen3.6-plus",
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.7,
+      temperature: 0.3,
+      max_tokens: 150,
     });
-    return completion.choices[0].message.content || "Keep reviewing your study materials to improve your understanding of these topics.";
+    const result = completion.choices[0].message.content || "Keep reviewing your study materials to improve your understanding of these topics.";
+    recommendationCache.set(cacheKey, result);
+    return result;
   } catch (error) {
     console.error("Error generating recommendation:", error);
     return "Keep reviewing your study materials to improve your understanding of these topics.";
